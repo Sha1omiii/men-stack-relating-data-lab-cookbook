@@ -7,7 +7,14 @@ const methodOverride = require('method-override');
 const morgan = require('morgan');
 const session = require('express-session');
 
+
+//middlewares
+const passUserToView = require('./middleware/pass-user-to-view.js');
+const isSignedIn = require('./middleware/is-signed-in.js');
+
 const authController = require('./controllers/auth.js');
+const recipesController = require('./controllers/recipe-controller.js');
+const ingredientController = require('./controllers/ingredient-controller.js');
 
 const port = process.env.PORT ? process.env.PORT : '3000';
 
@@ -19,6 +26,7 @@ mongoose.connection.on('connected', () => {
 
 app.use(express.urlencoded({ extended: false }));
 app.use(methodOverride('_method'));
+
 // app.use(morgan('dev'));
 app.use(
   session({
@@ -27,6 +35,11 @@ app.use(
     saveUninitialized: true,
   })
 );
+
+app.use(passUserToView);
+app.use('/auth', authController);
+app.use('/recipes', recipesController);
+app.use('/ingredients', ingredientController);
 
 app.get('/', (req, res) => {
   res.render('index.ejs', {
@@ -41,8 +54,6 @@ app.get('/vip-lounge', (req, res) => {
     res.send('Sorry, no guests allowed.');
   }
 });
-
-app.use('/auth', authController);
 
 app.listen(port, () => {
   console.log(`The express app is ready on port ${port}!`);
